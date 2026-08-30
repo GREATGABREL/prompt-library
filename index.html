@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GABREL's Prompt Library</title>
+<meta name="description" content="A personal library of reusable AI prompts, organized by category for fast search, browsing, and copying.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="GABREL's Prompt Library">
+<meta property="og:description" content="A personal library of reusable AI prompts, organized by category for fast search, browsing, and copying.">
+<meta property="og:type" content="website">
+
+<!-- Bootstrap Icons (required icon system) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<!-- Tailwind CSS (Play CDN, configured inline — no build step, no separate config file) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: "#F6F6F6",
+          ink: "#000000",
+          accent: "#FF6819",
+          surface: "#FFFFFF",
+          borderc: "#DEDEDE",
+          muted: "#4A4A4A"
+        },
+        fontFamily: {
+          head: ["Glancyr-Medium", "system-ui", "sans-serif"],
+          body: ["Glancyr-Light", "system-ui", "sans-serif"]
+        },
+        borderRadius: {
+          sm: "3px",
+          md: "5px"
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  /* =========================================================
+     LOCAL FONTS
+     ========================================================= */
+  @font-face {
+    font-family: "Glancyr-Medium";
+    src: url("Glancyr-Medium.otf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Glancyr-Light";
+    src: url("Glancyr-Light.otf") format("opentype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #F6F6F6;
+    --ink: #000000;
+    --accent: #FF6819;
+    --surface: #FFFFFF;
+    --borderc: #DEDEDE;
+    --muted: #4A4A4A;
+    --header-h: 60px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Glancyr-Light", system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, .font-head {
+    font-family: "Glancyr-Medium", system-ui, sans-serif;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* Accent underline for important headlines — deliberate, consistent treatment */
+  .headline-underline {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.2em;
+  }
+  .headline-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* Focus visibility — never removed, always replaced with a strong indicator */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -999px;
+    top: auto;
+    background: #000;
+    color: #fff;
+    padding: 0.7rem 1.1rem;
+    z-index: 200;
+    font-size: 0.85rem;
+  }
+  .skip-link:focus {
+    left: 0.75rem;
+    top: 0.75rem;
+  }
+
+  /* Line-clamp utility for compact card descriptions */
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Preformatted prompt text — preserves line breaks, wraps long lines */
+  .prompt-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: "Glancyr-Light", system-ui, sans-serif;
+  }
+
+  /* Placeholder tokens like [brand name] or {BUSINESS_NAME} — visually distinguishable, not color-only */
+  .placeholder-token {
+    background: #FDEDED;
+    border: 1px solid #F4B5B5;
+    border-radius: 3px;
+    padding: 0 3px;
+  }
+
+  /* Category filter row: horizontal scroll on small screens */
+  .category-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .category-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Overlay backdrop */
+  .overlay-backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  /* Simple, restrained transitions */
+  .transition-fast {
+    transition: all 150ms ease;
+  }
+
+  /* Drawer slide */
+  .drawer-panel {
+    transform: translateX(100%);
+    transition: transform 200ms ease;
+  }
+  .drawer-panel.is-open {
+    transform: translateX(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer-panel { transition: none; }
+  }
+
+  .modal-panel {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+  .modal-panel.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .modal-panel { transition: none; }
+  }
+
+  [hidden] { display: none !important; }
+
+  /* Ensure no horizontal overflow anywhere */
+  html, body { max-width: 100%; overflow-x: hidden; }
+</style>
+</head>
+
+<body class="bg-bg text-ink font-body antialiased">
+
+<a href="#main-content" class="skip-link">Skip to prompt library</a>
+
+<!-- ============================================================
+     HEADER / NAV
+     ============================================================ -->
+<header class="sticky top-0 z-40 bg-bg border-b border-borderc">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
+    <a href="#top" class="font-head text-sm sm:text-base tracking-tight text-ink no-underline">
+      GABREL<span class="text-accent">'</span>s Prompt Library
+    </a>
+    <button
+      type="button"
+      id="menuToggle"
+      class="inline-flex items-center gap-2 border border-ink rounded-sm px-3 py-2 text-sm font-body transition-fast hover:bg-ink hover:text-bg active:bg-accent active:border-accent active:text-white min-w-[44px] min-h-[44px] justify-center"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-controls="tocDrawer"
+      aria-label="Open table of contents"
+    >
+      <i class="bi bi-list text-lg leading-none" aria-hidden="true"></i>
+      <span class="hidden sm:inline">Menu</span>
+    </button>
+  </div>
+</header>
+
+<!-- ============================================================
+     TABLE OF CONTENTS DRAWER
+     ============================================================ -->
+<div id="tocDrawer" class="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="tocTitle" hidden>
+  <div id="tocBackdrop" class="absolute inset-0 overlay-backdrop"></div>
+  <div class="drawer-panel absolute right-0 top-0 h-full w-full max-w-sm bg-surface border-l border-borderc flex flex-col" id="tocPanel">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-borderc">
+      <h2 id="tocTitle" class="font-head text-base">Table of Contents</h2>
+      <button
+        type="button"
+        id="tocClose"
+        class="inline-flex items-center justify-center w-9 h-9 rounded-sm transition-fast hover:bg-bg"
+        aria-label="Close table of contents"
+      >
+        <i class="bi bi-x-lg text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-2 py-3" aria-label="Prompt categories">
+      <button
+        type="button"
+        class="toc-item w-full text-left px-3 py-2.5 rounded-sm text-sm font-body flex items-center justify-between transition-fast hover:bg-bg"
+        data-category="__all__"
+      >
+        <span>All Prompts</span>
+        <span class="toc-count text-muted text-xs" data-count-for="__all__"></span>
+      </button>
+      <div id="tocList" class="mt-1 flex flex-col"></div>
+    </nav>
+  </div>
+</div>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<div id="top"></div>
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-6 sm:pt-14 sm:pb-8">
+  <p class="font-head text-[0.7rem] tracking-[0.14em] uppercase text-accent mb-2">Personal AI Knowledge Tool</p>
+  <h1 class="font-head text-2xl sm:text-3xl md:text-4xl headline-underline leading-tight">
+    GABREL's Prompt Library
+  </h1>
+  <p class="mt-4 text-sm sm:text-base text-muted max-w-2xl">
+    A personal, searchable collection of reusable AI prompts — organized by category for fast retrieval, easy copying, and everyday use.
+  </p>
+
+  <!-- Search -->
+  <div class="mt-6 max-w-xl">
+    <label for="searchInput" class="sr-only">Search prompts</label>
+    <div class="relative">
+      <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-muted text-base" aria-hidden="true"></i>
+      <input
+        type="search"
+        id="searchInput"
+        class="w-full bg-surface border border-borderc rounded-md pl-11 pr-11 py-3 text-sm font-body text-ink placeholder-muted focus:outline-none focus:border-ink transition-fast"
+        placeholder="Search prompts, categories, or tags…"
+        autocomplete="off"
+        aria-describedby="promptCount"
+      >
+      <button
+        type="button"
+        id="searchClear"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 inline-flex items-center justify-center rounded-sm text-muted hover:text-ink transition-fast"
+        aria-label="Clear search"
+        hidden
+      >
+        <i class="bi bi-x-circle-fill text-base" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <p id="promptCount" class="mt-3 text-xs text-muted" aria-live="polite">Loading prompt library…</p>
+</section>
+
+<!-- ============================================================
+     CATEGORY FILTERS
+     ============================================================ -->
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pb-4" aria-label="Filter by category">
+  <div id="categoryFilters" class="category-scroll flex flex-wrap gap-2 overflow-x-auto pb-1" role="group" aria-label="Category filters">
+    <!-- category buttons injected by JS -->
+  </div>
+</section>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main id="main-content" class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+
+  <!-- Loading state -->
+  <div id="loadingState" class="py-16 text-center text-muted text-sm" role="status">
+    <i class="bi bi-arrow-repeat text-2xl animate-spin inline-block mb-3" aria-hidden="true"></i>
+    <p>Loading prompt library…</p>
+  </div>
+
+  <!-- Error state -->
+  <div id="errorState" class="py-16 text-center max-w-md mx-auto" role="alert" hidden>
+    <i class="bi bi-exclamation-triangle text-2xl text-accent inline-block mb-3" aria-hidden="true"></i>
+    <h2 class="font-head text-lg mb-2">The library couldn't be loaded</h2>
+    <p class="text-sm text-muted mb-4">
+      Something went wrong while loading the prompt data. If you opened this file directly from your computer, try serving it through a local server instead — browsers block local file loading for security reasons.
+    </p>
+    <button type="button" id="retryLoad" class="inline-flex items-center gap-2 border border-ink rounded-sm px-4 py-2 text-sm transition-fast hover:bg-ink hover:text-bg">
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Try again
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div id="emptyState" class="py-16 text-center max-w-md mx-auto" hidden>
+    <i class="bi bi-inbox text-2xl text-muted inline-block mb-3" aria-hidden="true"></i>
+    <h2 class="font-head text-lg mb-2">No prompts found</h2>
+    <p class="text-sm text-muted mb-4">No prompts match your current search or category filter.</p>
+    <button type="button" id="clearFilters" class="inline-flex items-center gap-2 border border-ink rounded-sm px-4 py-2 text-sm transition-fast hover:bg-ink hover:text-bg">
+      <i class="bi bi-x-lg" aria-hidden="true"></i> Clear filters
+    </button>
+  </div>
+
+  <!-- Prompt grid -->
+  <div id="promptGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" hidden></div>
+
+  <!-- Load more -->
+  <div class="mt-8 text-center">
+    <button type="button" id="loadMoreBtn" class="inline-flex items-center gap-2 border border-ink rounded-sm px-5 py-2.5 text-sm transition-fast hover:bg-ink hover:text-bg" hidden>
+      Load more prompts
+    </button>
+  </div>
+</main>
+
+<!-- ============================================================
+     PROMPT DETAIL MODAL
+     ============================================================ -->
+<div id="promptModalWrapper" class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-0 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+  <div id="modalBackdrop" class="absolute inset-0 overlay-backdrop"></div>
+  <div id="modalPanel" class="modal-panel relative bg-surface w-full sm:max-w-lg sm:rounded-md border border-borderc h-full sm:h-auto sm:max-h-[85vh] flex flex-col overflow-hidden">
+    <div class="flex items-start justify-between gap-4 px-5 sm:px-6 py-4 border-b border-borderc">
+      <div class="min-w-0">
+        <span id="modalCategory" class="inline-block text-[0.65rem] uppercase tracking-wide text-accent font-head mb-1"></span>
+        <h2 id="modalTitle" class="font-head text-lg leading-snug"></h2>
+      </div>
+      <button type="button" id="modalClose" class="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-sm transition-fast hover:bg-bg" aria-label="Close prompt details">
+        <i class="bi bi-x-lg text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="px-5 sm:px-6 py-4 overflow-y-auto flex-1">
+      <p id="modalDescription" class="text-sm text-muted mb-4"></p>
+
+      <div class="bg-bg border border-borderc rounded-md p-4">
+        <p id="modalPromptText" class="prompt-text text-sm leading-relaxed"></p>
+      </div>
+
+      <div id="modalTags" class="mt-4 flex flex-wrap gap-1.5"></div>
+    </div>
+
+    <div class="px-5 sm:px-6 py-4 border-t border-borderc">
+      <button type="button" id="modalCopyBtn" class="w-full inline-flex items-center justify-center gap-2 bg-ink text-bg rounded-sm py-2.5 text-sm font-body transition-fast hover:bg-accent">
+        <i class="bi bi-clipboard" aria-hidden="true"></i>
+        <span>Copy prompt</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Screen-reader live region for copy confirmations -->
+<div id="liveRegion" class="sr-only" aria-live="polite"></div>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="border-t border-borderc">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-muted">
+    <p>
+      Personal Prompt Library For
+      <a href="https://www.instagram.com/heisgabrel?igsi=c3IyMTdhZTkzMmp3" target="_blank" rel="noopener noreferrer" class="text-ink hover:text-accent underline underline-offset-2">GABREL</a>
+    </p>
+  </div>
+</footer>
+
+<!-- Prompt card template -->
+<template id="promptCardTemplate">
+  <article class="prompt-card bg-surface border border-borderc rounded-md p-4 flex flex-col justify-between transition-fast hover:border-ink">
+    <div>
+      <span class="card-category inline-block text-[0.65rem] uppercase tracking-wide text-accent font-head mb-1.5"></span>
+      <h3 class="card-title font-head text-sm leading-snug mb-1.5"></h3>
+      <p class="card-description clamp-2 text-xs text-muted mb-3"></p>
+      <div class="card-tags flex flex-wrap gap-1 mb-3"></div>
+    </div>
+    <div class="flex items-center gap-2 mt-1">
+      <button type="button" class="card-view-btn flex-1 inline-flex items-center justify-center gap-1.5 border border-ink rounded-sm py-2 text-xs transition-fast hover:bg-ink hover:text-bg">
+        <i class="bi bi-eye" aria-hidden="true"></i> View
+      </button>
+      <button type="button" class="card-copy-btn inline-flex items-center justify-center gap-1.5 border border-borderc rounded-sm py-2 px-3 text-xs transition-fast hover:border-ink" aria-label="Copy prompt">
+        <i class="bi bi-clipboard" aria-hidden="true"></i>
+      </button>
+    </div>
+  </article>
+</template>
+
+<template id="tocCategoryTemplate">
+  <button type="button" class="toc-item w-full text-left px-3 py-2.5 rounded-sm text-sm font-body flex items-center justify-between transition-fast hover:bg-bg">
+    <span class="toc-item-label"></span>
+    <span class="toc-item-count text-muted text-xs"></span>
+  </button>
+</template>
+
+<template id="tagTemplate">
+  <span class="inline-block bg-bg border border-borderc text-muted text-[0.65rem] px-2 py-0.5 rounded-sm"></span>
+</template>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===========================================================
+     STATE
+     =========================================================== */
+  var state = {
+    allPrompts: [],
+    categories: [],       // [{ name, count }]
+    activeCategory: "__all__",
+    searchTerm: "",
+    filtered: [],
+    renderedCount: 0,
+    pageSize: 24,
+    lastFocusedEl: null
+  };
+
+  /* ===========================================================
+     DOM REFERENCES
+     =========================================================== */
+  var el = {
+    loadingState: document.getElementById("loadingState"),
+    errorState: document.getElementById("errorState"),
+    emptyState: document.getElementById("emptyState"),
+    promptGrid: document.getElementById("promptGrid"),
+    promptCount: document.getElementById("promptCount"),
+    categoryFilters: document.getElementById("categoryFilters"),
+    searchInput: document.getElementById("searchInput"),
+    searchClear: document.getElementById("searchClear"),
+    loadMoreBtn: document.getElementById("loadMoreBtn"),
+    clearFiltersBtn: document.getElementById("clearFilters"),
+    retryLoadBtn: document.getElementById("retryLoad"),
+
+    menuToggle: document.getElementById("menuToggle"),
+    tocDrawer: document.getElementById("tocDrawer"),
+    tocBackdrop: document.getElementById("tocBackdrop"),
+    tocPanel: document.getElementById("tocPanel"),
+    tocClose: document.getElementById("tocClose"),
+    tocList: document.getElementById("tocList"),
+
+    modalWrapper: document.getElementById("promptModalWrapper"),
+    modalBackdrop: document.getElementById("modalBackdrop"),
+    modalPanel: document.getElementById("modalPanel"),
+    modalClose: document.getElementById("modalClose"),
+    modalCategory: document.getElementById("modalCategory"),
+    modalTitle: document.getElementById("modalTitle"),
+    modalDescription: document.getElementById("modalDescription"),
+    modalPromptText: document.getElementById("modalPromptText"),
+    modalTags: document.getElementById("modalTags"),
+    modalCopyBtn: document.getElementById("modalCopyBtn"),
+
+    liveRegion: document.getElementById("liveRegion"),
+
+    cardTemplate: document.getElementById("promptCardTemplate"),
+    tocCategoryTemplate: document.getElementById("tocCategoryTemplate"),
+    tagTemplate: document.getElementById("tagTemplate")
+  };
+
+  var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ===========================================================
+     UTILITIES
+     =========================================================== */
+  function debounce(fn, delay) {
+    var timer = null;
+    return function () {
+      var args = arguments;
+      var ctx = this;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function () {
+        fn.apply(ctx, args);
+      }, delay);
+    };
+  }
+
+  function normalize(str) {
+    return (str || "").toString().toLowerCase().trim();
+  }
+
+  function announce(msg) {
+    el.liveRegion.textContent = "";
+    window.setTimeout(function () {
+      el.liveRegion.textContent = msg;
+    }, 30);
+  }
+
+  /**
+   * Render text that may contain [bracket] or {VARIABLE} placeholders,
+   * visually distinguishing them without relying on color alone
+   * (a bordered token, not just colored text).
+   */
+  function renderPromptTextWithPlaceholders(container, text) {
+    container.textContent = "";
+    var pattern = /(\[[^\]\n]{1,80}\]|\{[A-Z0-9_]{1,40}\})/g;
+    var lastIndex = 0;
+    var match;
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        container.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+      }
+      var span = document.createElement("span");
+      span.className = "placeholder-token";
+      span.textContent = match[0];
+      container.appendChild(span);
+      lastIndex = pattern.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      container.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+  }
+
+  function copyToClipboard(text, onDone) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { onDone(true); },
+        function () { fallbackCopy(text, onDone); }
+      );
+    } else {
+      fallbackCopy(text, onDone);
+    }
+  }
+
+  function fallbackCopy(text, onDone) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      onDone(ok);
+    } catch (e) {
+      onDone(false);
+    }
+  }
+
+  function setButtonCopiedState(btn, isIconOnly) {
+    var icon = btn.querySelector("i");
+    var label = btn.querySelector("span");
+    var originalIconClass = icon ? icon.className : "";
+    var originalLabel = label ? label.textContent : "";
+
+    if (icon) { icon.className = "bi bi-check2"; }
+    if (label) { label.textContent = "Copied"; }
+    btn.classList.add("!border-accent");
+    btn.setAttribute("aria-label", "Copied to clipboard");
+
+    window.setTimeout(function () {
+      if (icon) { icon.className = originalIconClass; }
+      if (label) { label.textContent = originalLabel; }
+      btn.classList.remove("!border-accent");
+      btn.setAttribute("aria-label", isIconOnly ? "Copy prompt" : "Copy prompt");
+    }, 2000);
+  }
+
+  /* ===========================================================
+     DATA LOADING & VALIDATION
+     =========================================================== */
+  function loadPrompts() {
+    showLoading();
+    fetch("prompt.json", { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) { throw new Error("HTTP " + res.status); }
+        return res.json();
+      })
+      .then(function (data) {
+        var prompts = validateAndNormalize(data);
+        if (!prompts.length) { throw new Error("No valid prompts found"); }
+        state.allPrompts = prompts;
+        state.categories = deriveCategories(prompts);
+        renderCategoryFilters();
+        renderTocList();
+        applyFilters();
+        showContent();
+      })
+      .catch(function (err) {
+        console.error("Failed to load prompt.json:", err);
+        showError();
+      });
+  }
+
+  function validateAndNormalize(data) {
+    if (!Array.isArray(data)) { return []; }
+    var seen = {};
+    var out = [];
+    data.forEach(function (item, idx) {
+      if (!item || typeof item !== "object") { return; }
+      var id = item.id != null ? String(item.id) : "prompt-" + idx;
+      var title = typeof item.title === "string" && item.title.trim() ? item.title.trim() : null;
+      var category = typeof item.category === "string" && item.category.trim() ? item.category.trim() : null;
+      var prompt = typeof item.prompt === "string" && item.prompt.trim() ? item.prompt.trim() : null;
+
+      // Required fields — skip gracefully if missing rather than crashing the app
+      if (!title || !category || !prompt) { return; }
+      if (seen[id]) { id = id + "-" + idx; }
+      seen[id] = true;
+
+      out.push({
+        id: id,
+        title: title,
+        category: category,
+        description: typeof item.description === "string" ? item.description.trim() : "",
+        prompt: prompt,
+        tags: Array.isArray(item.tags) ? item.tags.filter(function (t) { return typeof t === "string" && t.trim(); }) : []
+      });
+    });
+    return out;
+  }
+
+  function deriveCategories(prompts) {
+    var counts = {};
+    prompts.forEach(function (p) {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+    });
+    return Object.keys(counts).sort().map(function (name) {
+      return { name: name, count: counts[name] };
+    });
+  }
+
+  /* ===========================================================
+     STATE VISIBILITY HELPERS
+     =========================================================== */
+  function showLoading() {
+    el.loadingState.hidden = false;
+    el.errorState.hidden = true;
+    el.emptyState.hidden = true;
+    el.promptGrid.hidden = true;
+    el.loadMoreBtn.hidden = true;
+  }
+  function showError() {
+    el.loadingState.hidden = true;
+    el.errorState.hidden = false;
+    el.emptyState.hidden = true;
+    el.promptGrid.hidden = true;
+    el.loadMoreBtn.hidden = true;
+    el.promptCount.textContent = "Library unavailable";
+  }
+  function showContent() {
+    el.loadingState.hidden = true;
+    el.errorState.hidden = true;
+  }
+
+  /* ===========================================================
+     CATEGORY FILTERS + TABLE OF CONTENTS (derived from data)
+     =========================================================== */
+  function renderCategoryFilters() {
+    el.categoryFilters.innerHTML = "";
+
+    var allBtn = document.createElement("button");
+    allBtn.type = "button";
+    allBtn.className = "category-btn transition-fast text-xs sm:text-sm px-3.5 py-2 rounded-sm border";
+    allBtn.dataset.category = "__all__";
+    allBtn.textContent = "All (" + state.allPrompts.length + ")";
+    el.categoryFilters.appendChild(allBtn);
+
+    state.categories.forEach(function (cat) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "category-btn transition-fast text-xs sm:text-sm px-3.5 py-2 rounded-sm border whitespace-nowrap";
+      btn.dataset.category = cat.name;
+      btn.textContent = cat.name + " (" + cat.count + ")";
+      el.categoryFilters.appendChild(btn);
+    });
+
+    updateCategoryButtonStates();
+
+    el.categoryFilters.addEventListener("click", function (e) {
+      var btn = e.target.closest(".category-btn");
+      if (!btn) { return; }
+      state.activeCategory = btn.dataset.category;
+      state.renderedCount = 0;
+      updateCategoryButtonStates();
+      applyFilters();
+    });
+  }
+
+  function updateCategoryButtonStates() {
+    var buttons = el.categoryFilters.querySelectorAll(".category-btn");
+    buttons.forEach(function (btn) {
+      var isActive = btn.dataset.category === state.activeCategory;
+      btn.classList.toggle("bg-ink", isActive);
+      btn.classList.toggle("text-bg", isActive);
+      btn.classList.toggle("border-ink", isActive);
+      btn.classList.toggle("bg-surface", !isActive);
+      btn.classList.toggle("border-borderc", !isActive);
+      btn.classList.toggle("text-ink", !isActive);
+      btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+  }
+
+  function renderTocList() {
+    el.tocList.innerHTML = "";
+    var allCountEl = document.querySelector('[data-count-for="__all__"]');
+    if (allCountEl) { allCountEl.textContent = state.allPrompts.length; }
+
+    state.categories.forEach(function (cat) {
+      var node = el.tocCategoryTemplate.content.cloneNode(true);
+      var btn = node.querySelector(".toc-item");
+      btn.dataset.category = cat.name;
+      node.querySelector(".toc-item-label").textContent = cat.name;
+      node.querySelector(".toc-item-count").textContent = cat.count;
+      el.tocList.appendChild(node);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var tocItem = e.target.closest(".toc-item");
+    if (!tocItem) { return; }
+    var category = tocItem.dataset.category;
+    state.activeCategory = category;
+    state.renderedCount = 0;
+    updateCategoryButtonStates();
+    applyFilters();
+    closeToc();
+    document.getElementById("main-content").scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+  });
+
+  /* ===========================================================
+     SEARCH + FILTER
+     =========================================================== */
+  function applyFilters() {
+    var term = normalize(state.searchTerm);
+    var byCategory = state.activeCategory === "__all__"
+      ? state.allPrompts
+      : state.allPrompts.filter(function (p) { return p.category === state.activeCategory; });
+
+    var result = !term ? byCategory : byCategory.filter(function (p) {
+      var haystack = [p.title, p.description, p.category, p.prompt].join(" ") + " " + p.tags.join(" ");
+      return normalize(haystack).indexOf(term) !== -1;
+    });
+
+    state.filtered = result;
+    state.renderedCount = 0;
+    renderPromptCount();
+    renderGrid(true);
+  }
+
+  var onSearchInput = debounce(function () {
+    state.searchTerm = el.searchInput.value;
+    el.searchClear.hidden = state.searchTerm.length === 0;
+    applyFilters();
+  }, 200);
+
+  el.searchInput.addEventListener("input", onSearchInput);
+
+  el.searchClear.addEventListener("click", function () {
+    el.searchInput.value = "";
+    state.searchTerm = "";
+    el.searchClear.hidden = true;
+    el.searchInput.focus();
+    applyFilters();
+  });
+
+  el.clearFiltersBtn.addEventListener("click", function () {
+    el.searchInput.value = "";
+    state.searchTerm = "";
+    el.searchClear.hidden = true;
+    state.activeCategory = "__all__";
+    updateCategoryButtonStates();
+    applyFilters();
+  });
+
+  el.retryLoadBtn.addEventListener("click", loadPrompts);
+
+  /* ===========================================================
+     RENDER PROMPT COUNT
+     =========================================================== */
+  function renderPromptCount() {
+    var total = state.allPrompts.length;
+    var showing = state.filtered.length;
+    if (state.activeCategory === "__all__" && !state.searchTerm) {
+      el.promptCount.textContent = total + " prompt" + (total === 1 ? "" : "s") + " in the library";
+    } else {
+      el.promptCount.textContent = showing + " of " + total + " prompts match your filters";
+    }
+  }
+
+  /* ===========================================================
+     RENDER PROMPT GRID (paginated for performance)
+     =========================================================== */
+  function renderGrid(reset) {
+    if (reset) {
+      el.promptGrid.innerHTML = "";
+      state.renderedCount = 0;
+    }
+
+    if (state.filtered.length === 0) {
+      el.promptGrid.hidden = true;
+      el.loadMoreBtn.hidden = true;
+      el.emptyState.hidden = false;
+      return;
+    }
+
+    el.emptyState.hidden = true;
+    el.promptGrid.hidden = false;
+
+    var nextSlice = state.filtered.slice(state.renderedCount, state.renderedCount + state.pageSize);
+    var frag = document.createDocumentFragment();
+
+    nextSlice.forEach(function (p) {
+      frag.appendChild(buildCard(p));
+    });
+
+    el.promptGrid.appendChild(frag);
+    state.renderedCount += nextSlice.length;
+
+    el.loadMoreBtn.hidden = state.renderedCount >= state.filtered.length;
+  }
+
+  el.loadMoreBtn.addEventListener("click", function () {
+    renderGrid(false);
+  });
+
+  function buildCard(p) {
+    var node = el.cardTemplate.content.cloneNode(true);
+    var article = node.querySelector(".prompt-card");
+    article.dataset.id = p.id;
+
+    node.querySelector(".card-category").textContent = p.category;
+    node.querySelector(".card-title").textContent = p.title;
+    node.querySelector(".card-description").textContent = p.description || p.prompt;
+
+    var tagsWrap = node.querySelector(".card-tags");
+    p.tags.slice(0, 3).forEach(function (tag) {
+      var tagNode = el.tagTemplate.content.cloneNode(true);
+      tagNode.querySelector("span").textContent = tag;
+      tagsWrap.appendChild(tagNode);
+    });
+
+    node.querySelector(".card-view-btn").addEventListener("click", function (e) {
+      openPromptDetail(p, e.currentTarget);
+    });
+
+    var copyBtn = node.querySelector(".card-copy-btn");
+    copyBtn.addEventListener("click", function () {
+      copyToClipboard(p.prompt, function (ok) {
+        if (ok) {
+          setButtonCopiedState(copyBtn, true);
+          announce("Prompt copied to clipboard");
+        } else {
+          announce("Copy failed. Please copy manually.");
+        }
+      });
+    });
+
+    return node;
+  }
+
+  /* ===========================================================
+     PROMPT DETAIL MODAL
+     =========================================================== */
+  function openPromptDetail(p, triggerEl) {
+    state.lastFocusedEl = triggerEl || document.activeElement;
+
+    el.modalCategory.textContent = p.category;
+    el.modalTitle.textContent = p.title;
+    el.modalDescription.textContent = p.description;
+    renderPromptTextWithPlaceholders(el.modalPromptText, p.prompt);
+
+    el.modalTags.innerHTML = "";
+    p.tags.forEach(function (tag) {
+      var tagNode = el.tagTemplate.content.cloneNode(true);
+      tagNode.querySelector("span").textContent = tag;
+      el.modalTags.appendChild(tagNode);
+    });
+
+    el.modalCopyBtn.onclick = function () {
+      copyToClipboard(p.prompt, function (ok) {
+        if (ok) {
+          setButtonCopiedState(el.modalCopyBtn, false);
+          announce("Prompt copied to clipboard");
+        } else {
+          announce("Copy failed. Please copy manually.");
+        }
+      });
+    };
+
+    el.modalWrapper.hidden = false;
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () {
+      el.modalPanel.classList.add("is-open");
+    });
+    el.modalClose.focus();
+
+    document.addEventListener("keydown", onModalKeydown);
+  }
+
+  function closePromptDetail() {
+    el.modalPanel.classList.remove("is-open");
+    var finish = function () {
+      el.modalWrapper.hidden = true;
+      document.body.style.overflow = "";
+      if (state.lastFocusedEl && document.contains(state.lastFocusedEl)) {
+        state.lastFocusedEl.focus();
+      }
+    };
+    if (prefersReducedMotion) {
+      finish();
+    } else {
+      window.setTimeout(finish, 150);
+    }
+    document.removeEventListener("keydown", onModalKeydown);
+  }
+
+  function onModalKeydown(e) {
+    if (e.key === "Escape") {
+      closePromptDetail();
+      return;
+    }
+    if (e.key === "Tab") {
+      trapFocus(e, el.modalPanel);
+    }
+  }
+
+  el.modalClose.addEventListener("click", closePromptDetail);
+  el.modalBackdrop.addEventListener("click", closePromptDetail);
+
+  /* ===========================================================
+     TABLE OF CONTENTS DRAWER (open/close + focus management)
+     =========================================================== */
+  function openToc() {
+    state.lastFocusedEl = document.activeElement;
+    el.tocDrawer.hidden = false;
+    el.menuToggle.setAttribute("aria-expanded", "true");
+    el.menuToggle.setAttribute("aria-label", "Close table of contents");
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () {
+      el.tocPanel.classList.add("is-open");
+    });
+    el.tocClose.focus();
+    document.addEventListener("keydown", onTocKeydown);
+  }
+
+  function closeToc() {
+    el.tocPanel.classList.remove("is-open");
+    el.menuToggle.setAttribute("aria-expanded", "false");
+    el.menuToggle.setAttribute("aria-label", "Open table of contents");
+    var finish = function () {
+      el.tocDrawer.hidden = true;
+      document.body.style.overflow = "";
+      if (state.lastFocusedEl && document.contains(state.lastFocusedEl)) {
+        state.lastFocusedEl.focus();
+      }
+    };
+    if (prefersReducedMotion) {
+      finish();
+    } else {
+      window.setTimeout(finish, 150);
+    }
+    document.removeEventListener("keydown", onTocKeydown);
+  }
+
+  function onTocKeydown(e) {
+    if (e.key === "Escape") {
+      closeToc();
+      return;
+    }
+    if (e.key === "Tab") {
+      trapFocus(e, el.tocPanel);
+    }
+  }
+
+  function trapFocus(e, container) {
+    var focusable = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) { return; }
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  el.menuToggle.addEventListener("click", function () {
+    var isOpen = el.menuToggle.getAttribute("aria-expanded") === "true";
+    if (isOpen) { closeToc(); } else { openToc(); }
+  });
+  el.tocClose.addEventListener("click", closeToc);
+  el.tocBackdrop.addEventListener("click", closeToc);
+
+  /* ===========================================================
+     INIT
+     =========================================================== */
+  loadPrompts();
+})();
+</script>
+</body>
+</html>
