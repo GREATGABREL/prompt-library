@@ -216,6 +216,42 @@
 
   /* Ensure no horizontal overflow anywhere */
   html, body { max-width: 100%; overflow-x: hidden; }
+
+  /* Back-to-top button: fixed bottom-right, hidden by default, fades/scales in while scrolling */
+  #backToTopBtn {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 60;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px) scale(0.96);
+    transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms;
+    pointer-events: none;
+  }
+  #backToTopBtn.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 0s;
+    pointer-events: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #backToTopBtn {
+      transition: opacity 150ms ease, visibility 0s linear 150ms;
+      transform: none;
+    }
+    #backToTopBtn.is-visible {
+      transition: opacity 150ms ease, visibility 0s linear 0s;
+      transform: none;
+    }
+  }
+  @media (min-width: 640px) {
+    #backToTopBtn {
+      right: 1.75rem;
+      bottom: 1.75rem;
+    }
+  }
 </style>
 </head>
 
@@ -406,6 +442,18 @@
   </div>
 </div>
 
+<!-- ============================================================
+     BACK TO TOP BUTTON
+     ============================================================ -->
+<button
+  type="button"
+  id="backToTopBtn"
+  class="inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-md bg-ink text-bg border border-ink transition-fast hover:bg-accent hover:border-accent shadow-lg"
+  aria-label="Back to top"
+>
+  <i class="bi bi-arrow-up text-lg" aria-hidden="true"></i>
+</button>
+
 <!-- Screen-reader live region for copy confirmations -->
 <div id="liveRegion" class="sr-only" aria-live="polite"></div>
 
@@ -508,7 +556,9 @@
 
     cardTemplate: document.getElementById("promptCardTemplate"),
     tocCategoryTemplate: document.getElementById("tocCategoryTemplate"),
-    tagTemplate: document.getElementById("tagTemplate")
+    tagTemplate: document.getElementById("tagTemplate"),
+
+    backToTopBtn: document.getElementById("backToTopBtn")
   };
 
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1039,6 +1089,44 @@
   });
   el.tocClose.addEventListener("click", closeToc);
   el.tocBackdrop.addEventListener("click", closeToc);
+
+  /* ===========================================================
+     BACK TO TOP BUTTON
+     - Shows while the page is being scrolled.
+     - Hides automatically 2 seconds after scrolling stops.
+     - Resets the hide timer if scrolling resumes before it fires.
+     - Clicking smoothly scrolls back to the top of the page.
+     =========================================================== */
+  var backToTopHideTimer = null;
+
+  function showBackToTopBtn() {
+    el.backToTopBtn.classList.add("is-visible");
+  }
+
+  function hideBackToTopBtn() {
+    el.backToTopBtn.classList.remove("is-visible");
+  }
+
+  function onWindowScroll() {
+    showBackToTopBtn();
+    if (backToTopHideTimer) {
+      window.clearTimeout(backToTopHideTimer);
+    }
+    backToTopHideTimer = window.setTimeout(function () {
+      hideBackToTopBtn();
+      backToTopHideTimer = null;
+    }, 2000);
+  }
+
+  window.addEventListener("scroll", onWindowScroll, { passive: true });
+
+  el.backToTopBtn.addEventListener("click", function () {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: prefersReducedMotion ? "auto" : "smooth"
+    });
+  });
 
   /* ===========================================================
      INIT
